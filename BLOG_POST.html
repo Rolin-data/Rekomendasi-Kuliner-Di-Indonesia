@@ -38,24 +38,27 @@ a{color:#2563eb}
 <li>Kalau ada yang cocok, nyaranin yang mirip-mirip.</li>
 <li>Kalau budget-nya pas-pasan, cariin paket makan + minum yang totalnya nggak lebih dari budget.</li>
 </ul>
-<h2>Data disimpan sebagai list of dictionary</h2>
-<p>Dataset ada di satu file <code>data_kuliner.py</code>, isinya list berisi 35 dictionary. Tiap dictionary punya empat kunci: <code>nama</code>, <code>kategori</code>, <code>harga</code>, dan <code>daerah</code>. Contohnya:</p>
+<h2>Data disimpan di file JSON</h2>
+<p>Semua item ada di satu file <code>data_kuliner.json</code>. Tiap item punya enam field: <code>nama</code>, <code>kategori</code>, <code>harga</code>, <code>daerah</code>, <code>tempat</code>, dan <code>catatan</code>. Contohnya:</p>
 <div class="codehilite"><pre><span></span><code><span class="p">{</span>
-    <span class="s2">"nama"</span><span class="p">:</span> <span class="s2">"Gudeg Jogja"</span><span class="p">,</span>
-    <span class="s2">"kategori"</span><span class="p">:</span> <span class="s2">"makanan"</span><span class="p">,</span>
-    <span class="s2">"harga"</span><span class="p">:</span> <span class="mi">20000</span><span class="p">,</span>
-    <span class="s2">"daerah"</span><span class="p">:</span> <span class="s2">"DI Yogyakarta"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"nama"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Gudeg Jogja"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"kategori"</span><span class="p">:</span><span class="w"> </span><span class="s2">"makanan"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"harga"</span><span class="p">:</span><span class="w"> </span><span class="mi">20000</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"daerah"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DI Yogyakarta"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"tempat"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"catatan"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span>
 <span class="p">}</span>
 </code></pre></div>
 
-<p>Harganya disimpan sebagai angka bulat, bukan string, biar gampang difilter dan diurutkan tanpa perlu parsing. <code>kategori</code> juga dipakai buat milih mode pencarian: makanan, minuman, atau camilan.</p>
+<p>Awalnya data aku taruh langsung di dalam kode Python. Tapi lama-lama kepikiran: kalau harga naik, masa harus buka kode dan edit manual? Akhirnya aku pindahin ke file JSON, dan bikin menu buat nambah, ngubah harga, dan hapus data langsung dari program. Jadi sekarang ini lebih ke <strong>catatan warung pribadi</strong> — <code>tempat</code> dan <code>catatan</code> sengaja kosong, buat diisi sendiri sesuai warung langganan.</p>
+<p>Harganya disimpan sebagai angka bulat, bukan string, biar gampang difilter dan diurutkan tanpa perlu parsing. <code>kategori</code> dipakai buat milih mode pencarian: makanan, minuman, atau camilan.</p>
 <p>Yang bikin dataset ini beda dari dataset tutorial biasa: harganya bukan asal ketik. Sebelum di-commit, aku cek dulu harga kaki lima dan warung di beberapa sumber (Geokepo, Jakarta Tourism, The Indonesia Guide, dst.) buat tahun 2026. Hasilnya: nasi goreng kaki lima memang di kisaran Rp15.000–25.000, es teh manis Rp3.000–5.000, Soto Betawi di tempat legendaris bisa Rp40.000 ke atas. Angka-angka di dataset disesuaikan sama rentang itu, bukan dikarang.</p>
 <p>Ada satu aturan tambahan: kalau sebuah hidangan sudah menyebar luas dan nggak bisa dibilang milik satu daerah lagi (kayak nasi goreng kampung, kopi tubruk, teh tarik, tahu isi), daerahnya ditulis <code>Nasional</code> — biar nggak ngaku-ngaku daerah orang.</p>
 <h2>Algoritmanya nggak rumit, tapi nyambung sama masalahnya</h2>
 <h3>1. Filter berdasarkan kategori dan budget</h3>
 <p>Ini inti dari program. Pakai list comprehension biasa:</p>
 <div class="codehilite"><pre><span></span><code><span class="n">hasil</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">DATA_KULINER</span>
+    <span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">data</span>
     <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="s2">"kategori"</span><span class="p">]</span> <span class="o">==</span> <span class="n">kategori</span> <span class="ow">and</span> <span class="n">item</span><span class="p">[</span><span class="s2">"harga"</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">budget</span>
 <span class="p">]</span>
 </code></pre></div>
@@ -78,11 +81,14 @@ a{color:#2563eb}
 <p>Selain filter kategori+budget, ada mode cari dari potongan nama atau daerah. Case-insensitive, jadi ngetik <code>jogja</code>, <code>Jogja</code>, atau <code>JOGJA</code> hasilnya sama:</p>
 <div class="codehilite"><pre><span></span><code><span class="n">kata</span> <span class="o">=</span> <span class="n">kata</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 <span class="k">return</span> <span class="p">[</span>
-    <span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">DATA_KULINER</span>
-    <span class="k">if</span> <span class="n">kata</span> <span class="ow">in</span> <span class="n">item</span><span class="p">[</span><span class="s2">"nama"</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">or</span> <span class="n">kata</span> <span class="ow">in</span> <span class="n">item</span><span class="p">[</span><span class="s2">"daerah"</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">data</span>
+    <span class="k">if</span> <span class="n">kata</span> <span class="ow">in</span> <span class="n">item</span><span class="p">[</span><span class="s2">"nama"</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="ow">or</span> <span class="n">kata</span> <span class="ow">in</span> <span class="n">item</span><span class="p">[</span><span class="s2">"daerah"</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="ow">or</span> <span class="n">kata</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tempat"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 <span class="p">]</span>
 </code></pre></div>
 
+<p>Sekarang pencariannya juga nyari di nama warung (<code>tempat</code>), jadi bisa ngetik nama langganan langsung.</p>
 <h3>5. Rekomendasi serupa: cari yang mirip, tapi utamakan satu daerah</h3>
 <p>Ini bagian yang paling aku suka. Logikanya: kalau user sudah nemu satu pilihan (misal Kerak Telor), program nyariin 3 item lain yang mirip. Tapi "mirip" di sini bukan sekadar kategori sama — ada bobot preferensi:</p>
 <div class="codehilite"><pre><span></span><code><span class="n">kandidat</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">lain</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">lain</span><span class="p">[</span><span class="s2">"harga"</span><span class="p">]</span> <span class="o">-</span> <span class="n">item</span><span class="p">[</span><span class="s2">"harga"</span><span class="p">]))</span>
@@ -112,17 +118,38 @@ a{color:#2563eb}
 
 <p>Hasilnya: user dapat paket lengkap (makan, minum, kadang camilan) yang pemakaian budget-nya dimaksimalkan tanpa ada satu sen pun kelewat.</p>
 <h2>Ngetes input "20.000" atau "20,000"</h2>
-<p>Waktu pertama kali demo, ada temen yang ngetik budget <code>20.000</code> (pakai titik) dan programnya error. Akhirnya ditambahin handling kecil di <code>tanya_budget()</code>:</p>
-<div class="codehilite"><pre><span></span><code><span class="n">budget</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">teks</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"."</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">","</span><span class="p">,</span> <span class="s2">""</span><span class="p">))</span>
+<p>Waktu pertama kali demo, ada temen yang ngetik budget <code>20.000</code> (pakai titik) dan programnya error. Akhirnya ditambahin satu fungsi kecil buat beresin input:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">parse_budget</span><span class="p">(</span><span class="n">teks</span><span class="p">):</span>
+    <span class="n">bersih</span> <span class="o">=</span> <span class="n">teks</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"rp"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"."</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">","</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">" "</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">bersih</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">nilai</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">bersih</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">nilai</span> <span class="k">if</span> <span class="n">nilai</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
 </code></pre></div>
 
-<p>Jadi <code>20000</code>, <code>20.000</code>, dan <code>20,000</code> semuanya ke-parse jadi <code>20000</code>. Test input juga disiapin (<code>test_input.txt</code>) biar bisa diuji otomatis dari terminal tanpa harus ketik manual tiap kali:</p>
+<p>Jadi <code>20000</code>, <code>20.000</code>, dan <code>Rp25,000</code> semuanya ke-parse jadi angka yang sama. Input ngawur kayak <code>abc</code> atau <code>0</code> langsung ditolak.</p>
+<h2>Nulis unit test biar nggak gampang rusak</h2>
+<p>Satu keputusan yang paling aku syukuri: logika dipisah dari input/output. Fungsi kayak <code>cari_kuliner</code>, <code>rekomendasi_serupa</code>, dan <code>paket_hemat</code> cuma nerima data dan balikin hasil — nggak nyentuh file, nggak nyentuh <code>input()</code>. Jadi gampang dites.</p>
+<p>Aku nulis 25 test pakai <code>unittest</code> bawaan Python (nggak perlu install apa-apa):</p>
+<div class="codehilite"><pre><span></span><code><span class="n">python</span> <span class="n">-m</span> <span class="n">unittest</span> <span class="n">-v</span> <span class="n">test_kuliner</span>
+</code></pre></div>
+
+<p>Contoh test buat paket hemat:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_ambil_total_terbesar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">paket</span> <span class="o">=</span> <span class="n">kuliner</span><span class="o">.</span><span class="n">paket_hemat</span><span class="p">(</span><span class="n">DATA</span><span class="p">,</span> <span class="mi">20000</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">paket</span><span class="p">[</span><span class="s2">"makanan"</span><span class="p">][</span><span class="s2">"nama"</span><span class="p">],</span> <span class="s2">"B"</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">paket</span><span class="p">[</span><span class="s2">"total"</span><span class="p">],</span> <span class="mi">20000</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Test-nya pakai data buatan sendiri, jadi nggak bakal ngerusak <code>data_kuliner.json</code> dan hasilnya selalu sama. Ini kepake banget waktu aku ngutak-atik logika paket hemat — tinggal jalanin test, langsung kelihatan ada yang rusak atau nggak.</p>
+<p>Buat uji programnya secara utuh, aku pakai contoh input (<code>test_input.txt</code>):</p>
 <div class="codehilite"><pre><span></span><code><span class="n">cmd</span> <span class="p">/</span><span class="n">c</span> <span class="s2">"python kuliner.py &lt; test_input.txt"</span>
 </code></pre></div>
 
 <h2>Pelajaran dari project kecil ini</h2>
-<p>Tiga hal yang aku ambil:</p>
+<p>Empat hal yang aku ambil:</p>
 <p><strong>Algoritma sederhana bisa sangat berguna.</strong> Nggak butuh machine learning buat masalah kayak gini. List comprehension, <code>sort()</code>, dan loop dua tingkat sudah cukup buat bikin program yang kepake sehari-hari.</p>
+<p><strong>Pisahin logika dari input/output.</strong> Begitu logika dilepas dari <code>input()</code> dan urusan file, unit test jadi gampang ditulis. Ini yang bikin perubahan-perubahan berikutnya nggak serem.</p>
 <p><strong>Prioritas bikin saran terasa logis.</strong> Ide "utamakan daerah yang sama" di rekomendasi serupa bikin saranannya nggak terasa acak. Walaupun cuma bobot sederhana, dampaknya ke pengalaman user cukup besar.</p>
 <p><strong>Fakta lebih baik dari asumsi.</strong> Dataset yang kelihatan sederhana ternyata butuh riset juga — nggak asal ketik angka. Sekali salah harga, credibility program-nya langsung drop.</p>
 <h2>Coba sendiri</h2>

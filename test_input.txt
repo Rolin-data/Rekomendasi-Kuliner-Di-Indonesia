@@ -6,4 +6,5 @@ makanan
 25000
 2
 Jogja
-4
+5
+6

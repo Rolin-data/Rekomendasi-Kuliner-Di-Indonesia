@@ -1,44 +1,58 @@
 # Rekomendasi Kuliner Indonesia
 
-Program rekomendasi kuliner berbasis terminal. Kamu sebut jenis kuliner dan budget,
-program carikan yang muat, urutkan dari yang termurah, lalu tawarkan pilihan yang mirip.
-Ada juga mode paket hemat: satu makanan + satu minuman yang totalnya mentok ke budget.
+Catatan kuliner berbasis terminal. Data nggak ditanam di dalam kode, tapi disimpan di
+file `data_kuliner.json` — jadi bisa ditambah, diubah harganya, atau dihapus langsung
+dari program. Ini bukan pura-pura jadi aplikasi nasional, tapi catatan warung buat
+dipakai sendiri.
+
+Kamu sebut jenis kuliner dan budget, program carikan yang muat, urutkan dari yang
+termurah, lalu tawarkan pilihan yang mirip. Ada juga mode paket hemat: satu makanan +
+satu minuman yang totalnya mentok ke budget.
 
 Proyek ini portfolio project untuk latihan **struktur data**, **algoritma pencarian dan
-pengurutan**, serta **Git version control**.
+pengurutan**, **penanganan file (JSON)**, **unit testing**, serta **Git version control**.
 
 ## Fitur
 
 1. **Cari sesuai jenis + budget** — pilih makanan/minuman/camilan, isi harga maksimal.
 2. **Tampil sisa uang** — tiap item langsung kelihatan sisa budgetnya.
 3. **Label hemat** — item yang harganya separuh budget atau kurang ditandai `(hemat)`.
-4. **Cari pakai nama atau daerah** — mis. ketik `Jogja` atau `rendang`.
+4. **Cari pakai nama, daerah, atau warung** — mis. ketik `Jogja` atau `Bu Tini`.
 5. **Paket hemat** — cari kombinasi 1 makanan + 1 minuman dengan total paling mendekati
    budget tapi tidak lewat. Kalau masih ada sisa, camilan termurah ikut ditambahkan.
 6. **Rekomendasi serupa** — dari item yang kamu pilih, program saranin item lain dengan
    jenis sama, utamakan daerah yang sama, urut dari harga terdekat.
+7. **Kelola data** — tambah kuliner baru, ubah harga, atau hapus, langsung tersimpan ke
+   `data_kuliner.json`.
+8. **Lihat semua data** — semua isi catatan, dikelompokkan per kategori.
 
 ## Data
 
-| Kategori | Jumlah item |
-|---|---:|
-| makanan | 15 |
-| minuman | 10 |
-| camilan | 10 |
-| **Total** | **35** |
+Data disimpan di `data_kuliner.json` sebagai array JSON. Tiap item bentuknya begini:
 
-Tiap item disimpan sebagai dictionary:
-
-```python
+```json
 {
-    "nama": "Gudeg Jogja",
-    "kategori": "makanan",
-    "harga": 20000,
-    "daerah": "DI Yogyakarta",
+  "nama": "Gudeg Jogja",
+  "kategori": "makanan",
+  "harga": 20000,
+  "daerah": "DI Yogyakarta",
+  "tempat": "",
+  "catatan": ""
 }
 ```
 
-Data lengkap ada di `data_kuliner.py`.
+| Field | Isi |
+|---|---|
+| `nama` | nama kuliner |
+| `kategori` | `makanan`, `minuman`, atau `camilan` |
+| `harga` | perkiraan harga per porsi (rupiah) |
+| `daerah` | daerah asal, atau `Nasional` kalau sudah menyebar |
+| `tempat` | nama warung/tempat, boleh kosong |
+| `catatan` | catatan bebas, boleh kosong |
+
+Jumlah awal **35 item** (15 makanan, 10 minuman, 10 camilan). Field `tempat` dan
+`catatan` sengaja dikosongin — isi sendiri lewat menu **Kelola data** biar jadi catatan
+yang beneran punya kamu (harga di warung langgananmu, bukan kira-kira).
 
 ### Sumber harga
 
@@ -64,20 +78,25 @@ ditulis `Nasional`.
 | Kebutuhan | Implementasi |
 |---|---|
 | Pencarian (filter) | List comprehension: cocokkan `kategori` dan `harga <= budget` |
-| Pencarian kata kunci | Substring match pada `nama` dan `daerah` (case-insensitive) |
+| Pencarian kata kunci | Substring match pada `nama`, `daerah`, dan `tempat` (case-insensitive) |
 | Pengurutan | `list.sort()` dengan `key=lambda item: item["harga"]` |
 | Rekomendasi serupa | Urut berdasarkan selisih harga (`abs(harga_a - harga_b)`), lalu prioritaskan daerah yang sama |
 | Paket hemat | Cek semua kombinasi (makanan × minuman), ambil yang total paling besar tapi ≤ budget, lalu tambahkan camilan termurah yang masih muat sisa |
 | Label hemat | Ditandai kalau `harga <= 0.5 * budget` |
+| Baca/tulis data | `json.load()` dan `json.dump()` ke `data_kuliner.json` |
+| Parsing input budget | Buang `Rp`, titik, koma, dan spasi lalu `int()`. Jadi `20.000` maupun `Rp25,000` tetap valid |
 
 ## Cara Menjalankan
 
 Butuh Python 3 (tanpa library tambahan).
 
 ```powershell
-cd kuliner-recommender
+cd Rekomendasi-Kuliner-Di-Indonesia
 python kuliner.py
 ```
+
+Data dibaca dari `data_kuliner.json` di folder yang sama. Kalau file itu nggak ada,
+program tetap jalan tapi daftarnya kosong (bisa diisi lewat menu Kelola data).
 
 ## Contoh Penggunaan
 
@@ -85,16 +104,18 @@ Output contoh (dari `test_input.txt`):
 
 ```
 ==========================================================
-  REKOMENDASI KULINER INDONESIA
-  35 kuliner siap dipilih
+  CATATAN KULINER SAYA
+  35 kuliner tercatat
 ==========================================================
 
 Mau ngapain?
   1. Cari makanan / minuman / camilan sesuai budget
-  2. Cari pakai nama atau daerah
+  2. Cari pakai nama, daerah, atau warung
   3. Cari paket hemat (makan + minum)
-  4. Keluar
-  Pilih (1/2/3/4):   Jenis (makanan / minuman / camilan):   Budget sekali makan (contoh 20000): 
+  4. Kelola data saya
+  5. Lihat semua data
+  6. Keluar
+  Pilih (1-6):   Jenis (makanan / minuman / camilan):   Budget sekali makan (contoh 20000): 
 
 Makanan yang muat Rp20.000:
 
@@ -120,14 +141,26 @@ Paket hemat (budget Rp25.000): makanan Nasi Goreng Kampung + minuman Kopi Tubruk
 ## Struktur Folder
 
 ```
-kuliner-recommender/
-├── kuliner.py        # program utama (CLI)
-├── data_kuliner.py   # dataset kuliner
-├── test_input.txt    # contoh input untuk pengujian otomatis
+Rekomendasi-Kuliner-Di-Indonesia/
+├── kuliner.py         # program utama + logika (CLI)
+├── data_kuliner.json  # isi catatan (bisa ditambah/diubah dari program)
+├── test_kuliner.py    # unit test
+├── test_input.txt     # contoh input buat uji CLI
+├── BLOG_POST.md       # tulisan teknis
+├── BLOG_POST.html     # versi HTML-nya
+├── convert_blog.py    # ubah BLOG_POST.md jadi HTML
 └── README.md
 ```
 
 ## Pengujian
+
+Unit test (nggak nyentuh `data_kuliner.json`, pakai data buatan):
+
+```powershell
+python -m unittest -v test_kuliner
+```
+
+Uji program CLI pakai contoh input:
 
 ```powershell
 cmd /c "python kuliner.py < test_input.txt"

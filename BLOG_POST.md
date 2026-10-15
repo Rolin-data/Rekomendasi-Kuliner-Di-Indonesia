@@ -18,20 +18,24 @@ Dari situ muncul ide bikin alat sederhana yang:
 - Kalau ada yang cocok, nyaranin yang mirip-mirip.
 - Kalau budget-nya pas-pasan, cariin paket makan + minum yang totalnya nggak lebih dari budget.
 
-## Data disimpan sebagai list of dictionary
+## Data disimpan di file JSON
 
-Dataset ada di satu file `data_kuliner.py`, isinya list berisi 35 dictionary. Tiap dictionary punya empat kunci: `nama`, `kategori`, `harga`, dan `daerah`. Contohnya:
+Semua item ada di satu file `data_kuliner.json`. Tiap item punya enam field: `nama`, `kategori`, `harga`, `daerah`, `tempat`, dan `catatan`. Contohnya:
 
-```python
+```json
 {
-    "nama": "Gudeg Jogja",
-    "kategori": "makanan",
-    "harga": 20000,
-    "daerah": "DI Yogyakarta",
+  "nama": "Gudeg Jogja",
+  "kategori": "makanan",
+  "harga": 20000,
+  "daerah": "DI Yogyakarta",
+  "tempat": "",
+  "catatan": ""
 }
 ```
 
-Harganya disimpan sebagai angka bulat, bukan string, biar gampang difilter dan diurutkan tanpa perlu parsing. `kategori` juga dipakai buat milih mode pencarian: makanan, minuman, atau camilan.
+Awalnya data aku taruh langsung di dalam kode Python. Tapi lama-lama kepikiran: kalau harga naik, masa harus buka kode dan edit manual? Akhirnya aku pindahin ke file JSON, dan bikin menu buat nambah, ngubah harga, dan hapus data langsung dari program. Jadi sekarang ini lebih ke **catatan warung pribadi** — `tempat` dan `catatan` sengaja kosong, buat diisi sendiri sesuai warung langganan.
+
+Harganya disimpan sebagai angka bulat, bukan string, biar gampang difilter dan diurutkan tanpa perlu parsing. `kategori` dipakai buat milih mode pencarian: makanan, minuman, atau camilan.
 
 Yang bikin dataset ini beda dari dataset tutorial biasa: harganya bukan asal ketik. Sebelum di-commit, aku cek dulu harga kaki lima dan warung di beberapa sumber (Geokepo, Jakarta Tourism, The Indonesia Guide, dst.) buat tahun 2026. Hasilnya: nasi goreng kaki lima memang di kisaran Rp15.000–25.000, es teh manis Rp3.000–5.000, Soto Betawi di tempat legendaris bisa Rp40.000 ke atas. Angka-angka di dataset disesuaikan sama rentang itu, bukan dikarang.
 
@@ -45,7 +49,7 @@ Ini inti dari program. Pakai list comprehension biasa:
 
 ```python
 hasil = [
-    item for item in DATA_KULINER
+    item for item in data
     if item["kategori"] == kategori and item["harga"] <= budget
 ]
 ```
@@ -79,10 +83,14 @@ Selain filter kategori+budget, ada mode cari dari potongan nama atau daerah. Cas
 ```python
 kata = kata.lower()
 return [
-    item for item in DATA_KULINER
-    if kata in item["nama"].lower() or kata in item["daerah"].lower()
+    item for item in data
+    if kata in item["nama"].lower()
+    or kata in item["daerah"].lower()
+    or kata in item.get("tempat", "").lower()
 ]
 ```
+
+Sekarang pencariannya juga nyari di nama warung (`tempat`), jadi bisa ngetik nama langganan langsung.
 
 ### 5. Rekomendasi serupa: cari yang mirip, tapi utamakan satu daerah
 
@@ -125,13 +133,41 @@ Hasilnya: user dapat paket lengkap (makan, minum, kadang camilan) yang pemakaian
 
 ## Ngetes input "20.000" atau "20,000"
 
-Waktu pertama kali demo, ada temen yang ngetik budget `20.000` (pakai titik) dan programnya error. Akhirnya ditambahin handling kecil di `tanya_budget()`:
+Waktu pertama kali demo, ada temen yang ngetik budget `20.000` (pakai titik) dan programnya error. Akhirnya ditambahin satu fungsi kecil buat beresin input:
 
 ```python
-budget = int(teks.replace(".", "").replace(",", ""))
+def parse_budget(teks):
+    bersih = teks.lower().replace("rp", "").replace(".", "").replace(",", "").replace(" ", "").strip()
+    if not bersih.isdigit():
+        return None
+    nilai = int(bersih)
+    return nilai if nilai > 0 else None
 ```
 
-Jadi `20000`, `20.000`, dan `20,000` semuanya ke-parse jadi `20000`. Test input juga disiapin (`test_input.txt`) biar bisa diuji otomatis dari terminal tanpa harus ketik manual tiap kali:
+Jadi `20000`, `20.000`, dan `Rp25,000` semuanya ke-parse jadi angka yang sama. Input ngawur kayak `abc` atau `0` langsung ditolak.
+
+## Nulis unit test biar nggak gampang rusak
+
+Satu keputusan yang paling aku syukuri: logika dipisah dari input/output. Fungsi kayak `cari_kuliner`, `rekomendasi_serupa`, dan `paket_hemat` cuma nerima data dan balikin hasil — nggak nyentuh file, nggak nyentuh `input()`. Jadi gampang dites.
+
+Aku nulis 25 test pakai `unittest` bawaan Python (nggak perlu install apa-apa):
+
+```powershell
+python -m unittest -v test_kuliner
+```
+
+Contoh test buat paket hemat:
+
+```python
+def test_ambil_total_terbesar(self):
+    paket = kuliner.paket_hemat(DATA, 20000)
+    self.assertEqual(paket["makanan"]["nama"], "B")
+    self.assertEqual(paket["total"], 20000)
+```
+
+Test-nya pakai data buatan sendiri, jadi nggak bakal ngerusak `data_kuliner.json` dan hasilnya selalu sama. Ini kepake banget waktu aku ngutak-atik logika paket hemat — tinggal jalanin test, langsung kelihatan ada yang rusak atau nggak.
+
+Buat uji programnya secara utuh, aku pakai contoh input (`test_input.txt`):
 
 ```powershell
 cmd /c "python kuliner.py < test_input.txt"
@@ -139,9 +175,11 @@ cmd /c "python kuliner.py < test_input.txt"
 
 ## Pelajaran dari project kecil ini
 
-Tiga hal yang aku ambil:
+Empat hal yang aku ambil:
 
 **Algoritma sederhana bisa sangat berguna.** Nggak butuh machine learning buat masalah kayak gini. List comprehension, `sort()`, dan loop dua tingkat sudah cukup buat bikin program yang kepake sehari-hari.
+
+**Pisahin logika dari input/output.** Begitu logika dilepas dari `input()` dan urusan file, unit test jadi gampang ditulis. Ini yang bikin perubahan-perubahan berikutnya nggak serem.
 
 **Prioritas bikin saran terasa logis.** Ide "utamakan daerah yang sama" di rekomendasi serupa bikin saranannya nggak terasa acak. Walaupun cuma bobot sederhana, dampaknya ke pengalaman user cukup besar.
 
