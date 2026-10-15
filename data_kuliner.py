@@ -12,7 +12,7 @@ DATA_KULINER = [
         "nama": "Nasi Goreng Kampung",
         "kategori": "makanan",
         "harga": 15000,
-        "daerah": "DKI Jakarta",
+        "daerah": "Nasional",
     },
     {
         "nama": "Nasi Padang Rendang",
@@ -23,7 +23,7 @@ DATA_KULINER = [
     {
         "nama": "Soto Betawi",
         "kategori": "makanan",
-        "harga": 25000,
+        "harga": 40000,
         "daerah": "DKI Jakarta",
     },
     {
@@ -78,7 +78,7 @@ DATA_KULINER = [
     {
         "nama": "Ayam Betutu Bali",
         "kategori": "makanan",
-        "harga": 32000,
+        "harga": 40000,
         "daerah": "Bali",
     },
     {
@@ -109,7 +109,7 @@ DATA_KULINER = [
         "nama": "Kopi Tubruk",
         "kategori": "minuman",
         "harga": 10000,
-        "daerah": "Jawa Timur",
+        "daerah": "Nasional",
     },
     {"nama": "Kopi Kintamani", "kategori": "minuman", "harga": 25000, "daerah": "Bali"},
     {
@@ -140,7 +140,7 @@ DATA_KULINER = [
         "nama": "Teh Tarik",
         "kategori": "minuman",
         "harga": 12000,
-        "daerah": "Sumatera Barat",
+        "daerah": "Nasional",
     },
     {"nama": "Bajigur", "kategori": "minuman", "harga": 9000, "daerah": "Jawa Barat"},
     {
@@ -149,7 +149,7 @@ DATA_KULINER = [
         "harga": 10000,
         "daerah": "Nasional",
     },
-    {"nama": "Tahu Isi", "kategori": "camilan", "harga": 5000, "daerah": "Jawa Tengah"},
+    {"nama": "Tahu Isi", "kategori": "camilan", "harga": 5000, "daerah": "Nasional"},
     {
         "nama": "Cireng Bumbu Rujak",
         "kategori": "camilan",
