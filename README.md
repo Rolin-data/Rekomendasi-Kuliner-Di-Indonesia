@@ -98,6 +98,24 @@ python kuliner.py
 Data dibaca dari `data_kuliner.json` di folder yang sama. Kalau file itu nggak ada,
 program tetap jalan tapi daftarnya kosong (bisa diisi lewat menu Kelola data).
 
+## Versi Web
+
+Ada juga versi webnya (`index.html`) yang baca `data_kuliner.json` yang sama — enak buat
+dibuka dari HP. Logikanya sama persis dengan versi Python (cari, paket hemat, rekomendasi
+serupa), tapi **read-only**: buat nambah atau ngubah data tetap lewat versi terminal, atau
+edit JSON-nya langsung.
+
+Buka pakai server lokal — browser nggak boleh ambil file lain kalau halaman dibuka lewat
+`file://`:
+
+```powershell
+python -m http.server 8000
+# lalu buka http://localhost:8000
+```
+
+Bisa juga diaktifkan GitHub Pages-nya di repo ini (Settings → Pages → branch `main`,
+folder `/`) biar langsung bisa dibuka online.
+
 ## Contoh Penggunaan
 
 Output contoh (dari `test_input.txt`):
@@ -143,7 +161,8 @@ Paket hemat (budget Rp25.000): makanan Nasi Goreng Kampung + minuman Kopi Tubruk
 ```
 Rekomendasi-Kuliner-Di-Indonesia/
 ├── kuliner.py         # program utama + logika (CLI)
-├── data_kuliner.json  # isi catatan (bisa ditambah/diubah dari program)
+├── data_kuliner.json  # isi catatan (dipakai CLI dan versi web)
+├── index.html         # versi web (Tailwind, read-only)
 ├── test_kuliner.py    # unit test
 ├── test_input.txt     # contoh input buat uji CLI
 ├── BLOG_POST.md       # tulisan teknis
@@ -165,3 +184,6 @@ Uji program CLI pakai contoh input:
 ```powershell
 cmd /c "python kuliner.py < test_input.txt"
 ```
+
+Versi web diuji manual di browser: hasil pencarian, paket hemat, dan daftar semua data
+dicek sama dengan output versi Python.

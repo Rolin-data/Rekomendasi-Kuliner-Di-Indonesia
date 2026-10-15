@@ -173,6 +173,22 @@ Buat uji programnya secara utuh, aku pakai contoh input (`test_input.txt`):
 cmd /c "python kuliner.py < test_input.txt"
 ```
 
+## Bikin versi web-nya juga
+
+Karena datanya udah pindah ke JSON dan logikanya udah dipisah, bikin versi web jadi jauh lebih gampang. Fungsinya aku tulis ulang di JavaScript (mirip banget sama versi Python-nya) dan tampilannya pakai Tailwind. Filenya cuma satu: `index.html`.
+
+```javascript
+function paketHemat(data, budget) {
+  const makanan = data.filter(i => i.kategori === "makanan" && i.harga <= budget);
+  const minuman = data.filter(i => i.kategori === "minuman" && i.harga <= budget);
+  // ...cari kombinasi yang totalnya paling mentok ke budget
+}
+```
+
+Datanya diambil pakai `fetch("data_kuliner.json")`, jadi nggak ada data yang diduplikasi — file yang sama dipakai versi terminal dan versi web. Satu hal yang sempat bikin bingung: kalau `index.html` dibuka langsung dari komputer (`file://`), browser nolak ambil file JSON-nya karena alasan keamanan. Jadi harus dibuka lewat server lokal (`python -m http.server`) atau GitHub Pages.
+
+Versi web ini sengaja read-only. Buat nambah atau ngubah data, tetap lewat versi terminal — atau memang sengaja ngedit JSON-nya sendiri.
+
 ## Pelajaran dari project kecil ini
 
 Empat hal yang aku ambil:
@@ -187,4 +203,4 @@ Empat hal yang aku ambil:
 
 ## Coba sendiri
 
-Repo lengkap ada di [github.com/Rolin-data/Rekomendasi-Kuliner-Di-Indonesia](https://github.com/Rolin-data/Rekomendasi-Kuliner-Di-Indonesia). Clone, masuk foldernya, jalanin `python kuliner.py`, dan langsung bisa dipakai. Nggak perlu install apa-apa selain Python 3.
+Repo lengkap ada di [github.com/Rolin-data/Rekomendasi-Kuliner-Di-Indonesia](https://github.com/Rolin-data/Rekomendasi-Kuliner-Di-Indonesia). Clone, masuk foldernya, jalanin `python kuliner.py`, dan langsung bisa dipakai. Nggak perlu install apa-apa selain Python 3. Mau versi webnya? Jalanin `python -m http.server` di folder yang sama, terus buka `http://localhost:8000`.

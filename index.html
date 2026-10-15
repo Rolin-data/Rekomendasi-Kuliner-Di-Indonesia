@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catatan Kuliner Saya</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+
+<div class="max-w-3xl mx-auto px-4 py-6 sm:py-10">
+
+  <header class="mb-6">
+    <h1 class="text-2xl sm:text-3xl font-bold text-slate-900">Catatan Kuliner Saya</h1>
+    <p id="info-data" class="text-sm text-slate-500 mt-1">Memuat data...</p>
+  </header>
+
+  <div id="peringatan" class="hidden mb-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800"></div>
+
+  <nav class="flex gap-2 mb-6 text-sm font-medium">
+    <button data-tab="cari" class="tab-btn flex-1 rounded-lg px-3 py-2 bg-slate-900 text-white">Cari</button>
+    <button data-tab="paket" class="tab-btn flex-1 rounded-lg px-3 py-2 bg-white text-slate-600 hover:bg-slate-50">Paket hemat</button>
+    <button data-tab="semua" class="tab-btn flex-1 rounded-lg px-3 py-2 bg-white text-slate-600 hover:bg-slate-50">Semua data</button>
+  </nav>
+
+  <!-- CARI -->
+  <section id="pane-cari" class="pane">
+    <div class="rounded-xl bg-white shadow-sm p-4 sm:p-5 space-y-4">
+      <div>
+        <label class="block text-sm font-medium mb-1">Jenis</label>
+        <select id="kategori" class="w-full rounded-lg border border-slate-300 px-3 py-2">
+          <option value="makanan">Makanan</option>
+          <option value="minuman">Minuman</option>
+          <option value="camilan">Camilan</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Budget sekali makan</label>
+        <input id="budget" type="text" inputmode="numeric" placeholder="contoh: 20000"
+               class="w-full rounded-lg border border-slate-300 px-3 py-2">
+        <p class="text-xs text-slate-400 mt-1">Boleh pakai titik atau koma, mis. 20.000 atau Rp25,000.</p>
+      </div>
+      <button id="btn-cari" class="w-full rounded-lg bg-emerald-600 px-4 py-2.5 font-medium text-white hover:bg-emerald-700">
+        Cari sekarang
+      </button>
+    </div>
+    <div id="hasil-cari" class="mt-4"></div>
+  </section>
+
+  <!-- PAKET HEMAT -->
+  <section id="pane-paket" class="pane hidden">
+    <div class="rounded-xl bg-white shadow-sm p-4 sm:p-5 space-y-4">
+      <div>
+        <label class="block text-sm font-medium mb-1">Budget paket (makan + minum)</label>
+        <input id="budget-paket" type="text" inputmode="numeric" placeholder="contoh: 25000"
+               class="w-full rounded-lg border border-slate-300 px-3 py-2">
+      </div>
+      <button id="btn-paket" class="w-full rounded-lg bg-emerald-600 px-4 py-2.5 font-medium text-white hover:bg-emerald-700">
+        Cari paket hemat
+      </button>
+    </div>
+    <div id="hasil-paket" class="mt-4"></div>
+  </section>
+
+  <!-- SEMUA -->
+  <section id="pane-semua" class="pane hidden">
+    <div id="hasil-semua"></div>
+  </section>
+
+  <footer class="mt-10 text-xs text-slate-400">
+    Data dibaca dari <code>data_kuliner.json</code>. Harga perkiraan warung/kaki lima, bisa kamu ubah sendiri.
+  </footer>
+
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Data
+// ---------------------------------------------------------------------------
+let DATA = [];
+
+// ---------------------------------------------------------------------------
+// Logika (sama seperti versi Python)
+// ---------------------------------------------------------------------------
+function rupiah(angka) {
+  return "Rp" + angka.toLocaleString("id-ID");
+}
+
+function parseBudget(teks) {
+  const bersih = teks.toLowerCase().replace(/rp/g, "").replace(/[.,\s]/g, "");
+  if (!/^\d+$/.test(bersih)) return null;
+  const nilai = parseInt(bersih, 10);
+  return nilai > 0 ? nilai : null;
+}
+
+function cariKuliner(data, kategori, budget) {
+  return data
+    .filter(function (i) { return i.kategori === kategori && i.harga <= budget; })
+    .sort(function (a, b) { return a.harga - b.harga; });
+}
+
+function cariKataKunci(data, kata) {
+  const k = kata.toLowerCase();
+  return data.filter(function (i) {
+    return i.nama.toLowerCase().includes(k)
+      || (i.daerah || "").toLowerCase().includes(k)
+      || (i.tempat || "").toLowerCase().includes(k);
+  });
+}
+
+function rekomendasiSerupa(data, item, jumlah) {
+  jumlah = jumlah || 3;
+  const kandidat = data.filter(function (l) {
+    return l.kategori === item.kategori && l.nama !== item.nama;
+  });
+  kandidat.sort(function (a, b) {
+    return Math.abs(a.harga - item.harga) - Math.abs(b.harga - item.harga);
+  });
+  const satuDaerah = kandidat.filter(function (l) { return l.daerah === item.daerah; });
+  const daerahLain = kandidat.filter(function (l) { return l.daerah !== item.daerah; });
+  return satuDaerah.concat(daerahLain).slice(0, jumlah);
+}
+
+function paketHemat(data, budget) {
+  const makanan = data.filter(function (i) { return i.kategori === "makanan" && i.harga <= budget; });
+  const minuman = data.filter(function (i) { return i.kategori === "minuman" && i.harga <= budget; });
+  const camilan = data.filter(function (i) { return i.kategori === "camilan"; })
+                      .sort(function (a, b) { return a.harga - b.harga; });
+
+  let terbaik = null;
+  for (const makan of makanan) {
+    for (const minum of minuman) {
+      const total = makan.harga + minum.harga;
+      if (total <= budget && (!terbaik || total > terbaik.total)) {
+        terbaik = { makanan: makan, minuman: minum, camilan: null, total: total };
+      }
+    }
+  }
+  if (!terbaik) return null;
+
+  const sisaAwal = budget - terbaik.total;
+  for (const cemil of camilan) {
+    if (cemil.harga <= sisaAwal) {
+      terbaik.camilan = cemil;
+      terbaik.total += cemil.harga;
+      break;
+    }
+  }
+  terbaik.sisa = budget - terbaik.total;
+  return terbaik;
+}
+
+// ---------------------------------------------------------------------------
+// Tampilan
+// ---------------------------------------------------------------------------
+function kartuCari(item, budget) {
+  const hemat = item.harga <= budget * 0.5;
+  const tempat = item.tempat
+    ? '<span class="text-slate-400"> &middot; ' + item.tempat + '</span>' : "";
+  return '<div class="flex items-center justify-between gap-3 border-b border-slate-100 py-2.5 last:border-0">'
+    + '<div class="min-w-0">'
+    + '<div class="font-medium truncate">' + item.nama
+    + (hemat ? ' <span class="ml-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-700">hemat</span>' : "")
+    + '</div>'
+    + '<div class="text-xs text-slate-500">' + item.daerah + tempat + '</div>'
+    + '</div>'
+    + '<div class="text-right shrink-0">'
+    + '<div class="font-semibold">' + rupiah(item.harga) + '</div>'
+    + '<div class="text-xs text-slate-400">sisa ' + rupiah(budget - item.harga) + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
+function tampilCari(hasil, budget) {
+  const box = document.getElementById("hasil-cari");
+  if (!hasil.length) {
+    box.innerHTML = '<div class="rounded-xl bg-white shadow-sm p-6 text-center text-slate-500">'
+      + 'Nggak ada yang cocok. Coba naikkan budget atau ganti jenisnya.</div>';
+    return;
+  }
+  let html = '<div class="rounded-xl bg-white shadow-sm p-4 sm:p-5">'
+    + '<div class="text-sm font-medium text-slate-600 mb-2">' + hasil.length + ' pilihan yang muat</div>';
+  hasil.forEach(function (item) { html += kartuCari(item, budget); });
+  html += '</div>';
+
+  // Rekomendasi serupa dari pilihan pertama
+  const mirip = rekomendasiSerupa(DATA, hasil[0], 3);
+  if (mirip.length) {
+    html += '<div class="mt-4 rounded-xl bg-white shadow-sm p-4 sm:p-5">'
+      + '<div class="text-sm font-medium text-slate-600 mb-2">Kalau kamu pilih '
+      + hasil[0].nama + ', coba juga:</div>';
+    mirip.forEach(function (l) {
+      html += '<div class="flex justify-between border-b border-slate-100 py-2 last:border-0">'
+        + '<span>' + l.nama + ' <span class="text-xs text-slate-400">(' + l.daerah + ')</span></span>'
+        + '<span class="font-medium">' + rupiah(l.harga) + '</span></div>';
+    });
+    html += '</div>';
+  }
+  box.innerHTML = html;
+}
+
+function tampilPaket(paket, budget) {
+  const box = document.getElementById("hasil-paket");
+  if (!paket) {
+    box.innerHTML = '<div class="rounded-xl bg-white shadow-sm p-6 text-center text-slate-500">'
+      + 'Budget segitu belum cukup buat paket makan + minum. Coba naikkan dikit.</div>';
+    return;
+  }
+  function baris(label, item) {
+    if (!item) {
+      return '<div class="flex justify-between py-2 border-b border-slate-100"><span class="text-slate-400">'
+        + label + '</span><span class="text-slate-400">belum muat</span></div>';
+    }
+    return '<div class="flex justify-between py-2 border-b border-slate-100"><span class="text-slate-400">'
+      + label + '</span><span>' + item.nama + ' &middot; <span class="font-medium">'
+      + rupiah(item.harga) + '</span></span></div>';
+  }
+  box.innerHTML = '<div class="rounded-xl bg-white shadow-sm p-4 sm:p-5">'
+    + '<div class="text-sm font-medium text-slate-600 mb-2">Paket hemat buat ' + rupiah(budget) + '</div>'
+    + baris("Makanan", paket.makanan)
+    + baris("Minuman", paket.minuman)
+    + baris("Camilan", paket.camilan)
+    + '<div class="flex justify-between pt-3"><span class="font-medium">Total</span>'
+    + '<span class="font-semibold">' + rupiah(paket.total) + '</span></div>'
+    + '<div class="flex justify-between text-sm text-slate-500">'
+    + '<span>Sisa</span><span>' + rupiah(paket.sisa) + '</span></div>'
+    + '</div>';
+}
+
+function tampilSemua() {
+  const kelompok = [
+    { judul: "Makanan", isi: DATA.filter(function (i) { return i.kategori === "makanan"; }) },
+    { judul: "Minuman", isi: DATA.filter(function (i) { return i.kategori === "minuman"; }) },
+    { judul: "Camilan", isi: DATA.filter(function (i) { return i.kategori === "camilan"; }) }
+  ];
+  let html = "";
+  kelompok.forEach(function (g) {
+    html += '<div class="mb-4 rounded-xl bg-white shadow-sm p-4 sm:p-5">'
+      + '<div class="text-sm font-medium text-slate-600 mb-2">' + g.judul + ' (' + g.isi.length + ')</div>';
+    g.isi.slice().sort(function (a, b) { return a.harga - b.harga; }).forEach(function (item) {
+      const tempat = item.tempat ? ' <span class="text-xs text-slate-400">[' + item.tempat + ']</span>' : "";
+      html += '<div class="flex justify-between border-b border-slate-100 py-2 last:border-0">'
+        + '<span>' + item.nama + ' <span class="text-xs text-slate-400">(' + item.daerah + ')</span>' + tempat + '</span>'
+        + '<span class="font-medium">' + rupiah(item.harga) + '</span></div>';
+    });
+    html += '</div>';
+  });
+  document.getElementById("hasil-semua").innerHTML = html;
+}
+
+// ---------------------------------------------------------------------------
+// Tab & event
+// ---------------------------------------------------------------------------
+document.querySelectorAll(".tab-btn").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    document.querySelectorAll(".pane").forEach(function (p) { p.classList.add("hidden"); });
+    document.getElementById("pane-" + btn.dataset.tab).classList.remove("hidden");
+    document.querySelectorAll(".tab-btn").forEach(function (b) {
+      b.className = "tab-btn flex-1 rounded-lg px-3 py-2 bg-white text-slate-600 hover:bg-slate-50";
+    });
+    btn.className = "tab-btn flex-1 rounded-lg px-3 py-2 bg-slate-900 text-white";
+  });
+});
+
+document.getElementById("btn-cari").addEventListener("click", function () {
+  const kategori = document.getElementById("kategori").value;
+  const budget = parseBudget(document.getElementById("budget").value);
+  const box = document.getElementById("hasil-cari");
+  if (budget === null) {
+    box.innerHTML = '<div class="rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">'
+      + 'Isi budget-nya dulu dengan angka, ya.</div>';
+    return;
+  }
+  tampilCari(cariKuliner(DATA, kategori, budget), budget);
+});
+
+document.getElementById("btn-paket").addEventListener("click", function () {
+  const budget = parseBudget(document.getElementById("budget-paket").value);
+  const box = document.getElementById("hasil-paket");
+  if (budget === null) {
+    box.innerHTML = '<div class="rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">'
+      + 'Isi budget-nya dulu dengan angka, ya.</div>';
+    return;
+  }
+  tampilPaket(paketHemat(DATA, budget), budget);
+});
+
+// ---------------------------------------------------------------------------
+// Muat data
+// ---------------------------------------------------------------------------
+(function muat() {
+  fetch("data_kuliner.json")
+    .then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    })
+    .then(function (data) {
+      DATA = data;
+      document.getElementById("info-data").textContent = data.length + " kuliner tercatat";
+      tampilSemua();
+    })
+    .catch(function (err) {
+      document.getElementById("info-data").textContent = "Data gagal dimuat";
+      document.getElementById("peringatan").classList.remove("hidden");
+      document.getElementById("peringatan").innerHTML =
+        "Nggak bisa baca <code>data_kuliner.json</code> (" + err.message + ").<br>"
+        + "Kalau file ini dibuka langsung dari komputer (file://), browser nggak boleh ambil file lain. "
+        + "Jalankan lewat server lokal: <code>python -m http.server</code> di folder ini, lalu buka "
+        + "<code>http://localhost:8000</code>. Atau lihat versinya di GitHub Pages.";
+    });
+})();
+</script>
+</body>
+</html>

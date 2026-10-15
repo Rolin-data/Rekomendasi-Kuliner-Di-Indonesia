@@ -146,6 +146,17 @@ a{color:#2563eb}
 <div class="codehilite"><pre><span></span><code><span class="n">cmd</span> <span class="p">/</span><span class="n">c</span> <span class="s2">"python kuliner.py &lt; test_input.txt"</span>
 </code></pre></div>
 
+<h2>Bikin versi web-nya juga</h2>
+<p>Karena datanya udah pindah ke JSON dan logikanya udah dipisah, bikin versi web jadi jauh lebih gampang. Fungsinya aku tulis ulang di JavaScript (mirip banget sama versi Python-nya) dan tampilannya pakai Tailwind. Filenya cuma satu: <code>index.html</code>.</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">function</span><span class="w"> </span><span class="nx">paketHemat</span><span class="p">(</span><span class="nx">data</span><span class="p">,</span><span class="w"> </span><span class="nx">budget</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">makanan</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">data</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">i</span><span class="p">.</span><span class="nx">kategori</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s2">"makanan"</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">i</span><span class="p">.</span><span class="nx">harga</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="nx">budget</span><span class="p">);</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">minuman</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">data</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="nx">i</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">i</span><span class="p">.</span><span class="nx">kategori</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s2">"minuman"</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nx">i</span><span class="p">.</span><span class="nx">harga</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="nx">budget</span><span class="p">);</span>
+<span class="w">  </span><span class="c1">// ...cari kombinasi yang totalnya paling mentok ke budget</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>Datanya diambil pakai <code>fetch("data_kuliner.json")</code>, jadi nggak ada data yang diduplikasi — file yang sama dipakai versi terminal dan versi web. Satu hal yang sempat bikin bingung: kalau <code>index.html</code> dibuka langsung dari komputer (<code>file://</code>), browser nolak ambil file JSON-nya karena alasan keamanan. Jadi harus dibuka lewat server lokal (<code>python -m http.server</code>) atau GitHub Pages.</p>
+<p>Versi web ini sengaja read-only. Buat nambah atau ngubah data, tetap lewat versi terminal — atau memang sengaja ngedit JSON-nya sendiri.</p>
 <h2>Pelajaran dari project kecil ini</h2>
 <p>Empat hal yang aku ambil:</p>
 <p><strong>Algoritma sederhana bisa sangat berguna.</strong> Nggak butuh machine learning buat masalah kayak gini. List comprehension, <code>sort()</code>, dan loop dua tingkat sudah cukup buat bikin program yang kepake sehari-hari.</p>
@@ -153,7 +164,7 @@ a{color:#2563eb}
 <p><strong>Prioritas bikin saran terasa logis.</strong> Ide "utamakan daerah yang sama" di rekomendasi serupa bikin saranannya nggak terasa acak. Walaupun cuma bobot sederhana, dampaknya ke pengalaman user cukup besar.</p>
 <p><strong>Fakta lebih baik dari asumsi.</strong> Dataset yang kelihatan sederhana ternyata butuh riset juga — nggak asal ketik angka. Sekali salah harga, credibility program-nya langsung drop.</p>
 <h2>Coba sendiri</h2>
-<p>Repo lengkap ada di <a href="https://github.com/Rolin-data/Rekomendasi-Kuliner-Di-Indonesia">github.com/Rolin-data/Rekomendasi-Kuliner-Di-Indonesia</a>. Clone, masuk foldernya, jalanin <code>python kuliner.py</code>, dan langsung bisa dipakai. Nggak perlu install apa-apa selain Python 3.</p>
+<p>Repo lengkap ada di <a href="https://github.com/Rolin-data/Rekomendasi-Kuliner-Di-Indonesia">github.com/Rolin-data/Rekomendasi-Kuliner-Di-Indonesia</a>. Clone, masuk foldernya, jalanin <code>python kuliner.py</code>, dan langsung bisa dipakai. Nggak perlu install apa-apa selain Python 3. Mau versi webnya? Jalanin <code>python -m http.server</code> di folder yang sama, terus buka <code>http://localhost:8000</code>.</p>
 </main>
 </body>
 </html>
