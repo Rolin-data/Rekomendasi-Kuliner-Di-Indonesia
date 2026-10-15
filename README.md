@@ -1,6 +1,7 @@
 # Rekomendasi Kuliner Indonesia
 
-**Demo online:** https://rolin-data.github.io/Rekomendasi-Kuliner-Di-Indonesia/
+- **Demo online:** https://rolin-data.github.io/Rekomendasi-Kuliner-Di-Indonesia/
+- **Blog post:** https://rolin-data.github.io/Rekomendasi-Kuliner-Di-Indonesia/BLOG_POST.html
 
 Catatan kuliner berbasis terminal. Data nggak ditanam di dalam kode, tapi disimpan di
 file `data_kuliner.json` — jadi bisa ditambah, diubah harganya, atau dihapus langsung
