@@ -1,23 +1,26 @@
-# Membuat Program Rekomendasi Kuliner Indonesia Sederhana dengan Python
+# Program Rekomendasi Kuliner Indonesia: Filter Budget, Paket Hemat, dan Cara Kerjanya
 
-## Latar Belakang
+Rata-rata hari Sabtu malam aku selalu bingung milih makan. Bukan karena nggak ada pilihan — justru kebanyakan. Di satu sisi pengen yang murah, di sisi lain nggak mau asal murah tapi nggak kenyang. Akhirnya muter-muter di GoFood atau keliling kampung, capek sendiri.
 
-Saat mau makan, pertanyaan yang sering muncul biasanya simpel: "Mau makan apa ya, tapi budget cuma segini?". Daripada bingung bolak-balik, lebih gampang kalau ada saran yang langsung sesuai kantong.
+Daripada kelamaan mikir, aku bikin program kecil di Python yang jawab pertanyaan simpel: **"Makan apa hari ini dengan budget segini?"** Programnya jalan di terminal, nggak pakai library tambahan, dan datanya 35 kuliner Indonesia dari sabang sampai merauke.
 
-Dari situ muncul ide untuk membuat program rekomendasi kuliner Indonesia berbasis terminal. Tujuannya simpel: menerima input jenis kuliner (makanan, minuman, atau camilan) dan budget, lalu memberikan daftar pilihan yang masuk budget, diurutkan dari yang paling murah.
+Namanya **Rekomendasi Kuliner Indonesia**. Repo-nya ada di [GitHub](https://github.com/Rolin-data/Rekomendasi-Kuliner-Di-Indonesia).
 
-Proyek ini juga jadi latihan untuk mengaplikasikan konsep dasar pemrograman Python: struktur data, algoritma pencarian dan pengurutan, serta penggunaan Git untuk version control.
+## Masalahnya kelihatan sepele, tapi nyebelin
 
-## Masalah yang Ingin Diselesaikan
+Kalau lagi lapar dan buka aplikasi ojek online, yang muncul bukan "makan apa yang cocok", tapi justru "ini harganya masuk nggak ya budgetku?". Scroll bawah, klik item, lihat harga, tutup, scroll lagi. Capek. Belum lagi kalau mau sekalian nyari yang mirip sama makanan favoritku tapi versi lebih murah, atau lagi pengen hemat tapi tetap pengen makan + minum sekaligus.
 
-1. **Terlalu banyak pilihan** — daftar kuliner Indonesia buanyak, susah milih kalau nggak tahu harganya.
-2. **Budget terbatas** — butuh filter otomatis biar nggak usah cek satu per satu.
-3. **Butuh saran yang relevan** — kalau sudah nemu satu pilihan, biasanya pengen yang mirip-mirip.
-4. **Mau hemat tapi tetap kenyang** — kadang butuh kombinasi (makan + minum) biar totalnya pas di budget.
+Dari situ muncul ide bikin alat sederhana yang:
 
-## Struktur Data
+- Menerima input jenis kuliner (makanan, minuman, atau camilan) dan budget.
+- Nge-filter yang harganya masih masuk.
+- Ngeurutkan dari yang termurah.
+- Kalau ada yang cocok, nyaranin yang mirip-mirip.
+- Kalau budget-nya pas-pasan, cariin paket makan + minum yang totalnya nggak lebih dari budget.
 
-Program ini menyimpan datanya dalam bentuk list berisi dictionary Python.
+## Data disimpan sebagai list of dictionary
+
+Dataset ada di satu file `data_kuliner.py`, isinya list berisi 35 dictionary. Tiap dictionary punya empat kunci: `nama`, `kategori`, `harga`, dan `daerah`. Contohnya:
 
 ```python
 {
@@ -28,15 +31,17 @@ Program ini menyimpan datanya dalam bentuk list berisi dictionary Python.
 }
 ```
 
-Pemilihan struktur ini cukup simpel dan fleksibel. Kita bisa langsung mengakses `item["harga"]`, `item["kategori"]`, atau `item["daerah"]` tanpa perlu parsing rumit.
+Harganya disimpan sebagai angka bulat, bukan string, biar gampang difilter dan diurutkan tanpa perlu parsing. `kategori` juga dipakai buat milih mode pencarian: makanan, minuman, atau camilan.
 
-Dataset berisi **35 item kuliner Indonesia** yang terbagi jadi: makanan (15), minuman (10), dan camilan (10). Semua harganya menggunakan angka bulat (rupiah) agar mudah difilter dan diurutkan.
+Yang bikin dataset ini beda dari dataset tutorial biasa: harganya bukan asal ketik. Sebelum di-commit, aku cek dulu harga kaki lima dan warung di beberapa sumber (Geokepo, Jakarta Tourism, The Indonesia Guide, dst.) buat tahun 2026. Hasilnya: nasi goreng kaki lima memang di kisaran Rp15.000–25.000, es teh manis Rp3.000–5.000, Soto Betawi di tempat legendaris bisa Rp40.000 ke atas. Angka-angka di dataset disesuaikan sama rentang itu, bukan dikarang.
 
-## Algoritma yang Dipakai
+Ada satu aturan tambahan: kalau sebuah hidangan sudah menyebar luas dan nggak bisa dibilang milik satu daerah lagi (kayak nasi goreng kampung, kopi tubruk, teh tarik, tahu isi), daerahnya ditulis `Nasional` — biar nggak ngaku-ngaku daerah orang.
 
-### 1. Filter Berdasarkan Kategori dan Budget
+## Algoritmanya nggak rumit, tapi nyambung sama masalahnya
 
-Langkah pertama adalah menyaring data yang sesuai permintaan user. Ini dilakukan dengan list comprehension:
+### 1. Filter berdasarkan kategori dan budget
+
+Ini inti dari program. Pakai list comprehension biasa:
 
 ```python
 hasil = [
@@ -45,19 +50,31 @@ hasil = [
 ]
 ```
 
-Logika ini simpel tapi efektif: ambil semua item yang jenisnya sesuai dan harganya nggak lebih dari budget yang dimasukkan user.
+Simpel, tapi cukup. Ambil yang jenisnya sesuai, harganya nggak lewat budget.
 
-### 2. Pengurutan dari Termurah
-
-Agar user langsung lihat opsi paling hemat dulu, hasil filter diurutkan berdasarkan harga naik.
+### 2. Diurutkan dari termurah
 
 ```python
 hasil.sort(key=lambda item: item["harga"])
 ```
 
-### 3. Pencarian Kata Kunci
+Biar user langsung lihat opsi paling hemat di paling atas. Nggak perlu algoritma sorting bikinan sendiri — `list.sort()` sudah cukup buat ukuran data segini.
 
-Selain filter berdasarkan kategori+budget, ada juga mode pencarian bebas berdasarkan potongan nama atau daerah.
+### 3. Sisa uang dan label hemat
+
+Tiap baris hasil nggak cuma nampilin nama dan harga, tapi juga sisa budget:
+
+```python
+baris += f"  sisa {rupiah(budget - item['harga'])}"
+if item["harga"] <= budget * 0.5:
+    baris += "  (hemat)"
+```
+
+Kalau harganya separuh budget atau kurang, diberi tanda `(hemat)`. Ini bantu user cepat ngenalin opsi yang paling irit tanpa harus hitung sendiri.
+
+### 4. Pencarian bebas pakai kata kunci
+
+Selain filter kategori+budget, ada mode cari dari potongan nama atau daerah. Case-insensitive, jadi ngetik `jogja`, `Jogja`, atau `JOGJA` hasilnya sama:
 
 ```python
 kata = kata.lower()
@@ -67,16 +84,9 @@ return [
 ]
 ```
 
-Dengan pencarian case-insensitive, user bisa ketik `"jogja"`, `"Jogja"`, atau `"JOGJA"` dan tetap dapat hasilnya.
+### 5. Rekomendasi serupa: cari yang mirip, tapi utamakan satu daerah
 
-### 4. Rekomendasi Serupa
-
-Fitur ini jawab pertanyaan: "Kalau aku suka ini, apa lagi yang mirip?".
-
-1. Ambil semua item dengan **kategori yang sama**, tapi **beda nama**.
-2. Urutkan berdasarkan **selisih harga terkecil**.
-3. Prioritaskan item yang **berasal dari daerah yang sama** dengan pilihan user.
-4. Ambil 3 teratas sebagai saran.
+Ini bagian yang paling aku suka. Logikanya: kalau user sudah nemu satu pilihan (misal Kerak Telor), program nyariin 3 item lain yang mirip. Tapi "mirip" di sini bukan sekadar kategori sama — ada bobot preferensi:
 
 ```python
 kandidat.sort(key=lambda lain: abs(lain["harga"] - item["harga"]))
@@ -85,23 +95,23 @@ daerah_lain = [l for l in kandidat if l["daerah"] != item["daerah"]]
 return (satu_daerah + daerah_lain)[:3]
 ```
 
-Pendekatan ini mirip dengan konsep *nearest neighbor*: cari item terdekat berdasarkan nilai numerik (harga), dengan bobot preferensi daerah.
+Pertama, ambil semua item dengan kategori yang sama tapi beda nama. Kedua, urutkan berdasarkan selisih harga terkecil — ini konsep dasar *nearest neighbor*, cari yang paling dekat berdasarkan nilai numerik. Ketiga, pisahkan yang se-daerah sama yang beda daerah, lalu gabung dengan prioritas se-daerah duluan. Jadi kalau lagi cari yang mirip Kerak Telor, saran pertama yang muncul biasanya dari DKI Jakarta juga.
 
-### 5. Paket Hemat (Makan + Minum)
+### 6. Paket hemat: makan + minum yang totalnya pas di budget
 
-Ini fitur yang bikin program beda dari contoh-contoh tutorial biasa. Tujuannya: cari kombinasi **1 makanan + 1 minuman** yang totalnya bisa mentok semaksimal mungkin ke budget.
+Ini fitur yang bikin program ini beda dari kebanyakan tutorial recommender. Tujuannya: cari kombinasi 1 makanan dan 1 minuman yang totalnya mentok semaksimal mungkin ke budget, tapi nggak lebih.
 
 ```python
 for makan in makanan:
     for minum in minuman:
         total = makan["harga"] + minum["harga"]
         if total <= budget and (terbaik is None or total > terbaik["total"]):
-            terbaik = {...}
+            terbaik = {"makanan": makan, "minuman": minum, "total": total}
 ```
 
-Strateginya adalah **brute force** sederhana (makanan × minuman). Jumlah datanya kecil (15×10 = 150 kombinasi per pencarian), jadi nggak ada masalah performa.
+Ini brute force sederhana — makanan dikali minuman. Dengan 15 makanan dan 10 minuman, itu 150 kombinasi per pencarian. Jumlah kecil, jadi nggak ada masalah performa.
 
-Tambahan kecil biar makin hemat: kalau masih ada sisa budget setelah dapat kombinasi terbaik, program otomatis menambahkan **camilan termurah** yang masih muat di sisa uang tersebut.
+Kalau masih ada sisa budget setelah dapat kombinasi terbaik, program otomatis nambahin camilan termurah yang masih muat:
 
 ```python
 sisa = budget - terbaik["total"]
@@ -111,50 +121,32 @@ for cemil in camilan:
         break
 ```
 
-### 6. Sisa Budget dan Label Hemat
+Hasilnya: user dapat paket lengkap (makan, minum, kadang camilan) yang pemakaian budget-nya dimaksimalkan tanpa ada satu sen pun kelewat.
 
-Biar user bisa langsung lihat nilai gunanya, tiap hasil ditampilkan lengkap dengan **sisa uang**.
+## Ngetes input "20.000" atau "20,000"
+
+Waktu pertama kali demo, ada temen yang ngetik budget `20.000` (pakai titik) dan programnya error. Akhirnya ditambahin handling kecil di `tanya_budget()`:
 
 ```python
-baris += f"  sisa {rupiah(budget - item['harga'])}"
-if item["harga"] <= budget * 0.5:
-    baris += "  (hemat)"
+budget = int(teks.replace(".", "").replace(",", ""))
 ```
 
-Label `(hemat)` muncul kalau harganya **≤ 50% dari budget**.
+Jadi `20000`, `20.000`, dan `20,000` semuanya ke-parse jadi `20000`. Test input juga disiapin (`test_input.txt`) biar bisa diuji otomatis dari terminal tanpa harus ketik manual tiap kali:
 
-## Pengujian
-
-Program bisa diuji otomatis lewat file input. Contohnya `test_input.txt`:
-
-```text
-1
-makanan
-20000
-1
-3
-25000
-2
-Jogja
-4
+```powershell
+cmd /c "python kuliner.py < test_input.txt"
 ```
 
-Alurnya: cari makanan budget 20.000 → pilih item #1 (lihat rekomendasi serupa) → mode paket hemat budget 25.000 → cari berdasarkan kata kunci "Jogja" → keluar.
+## Pelajaran dari project kecil ini
 
-## Pelajaran yang Dipetik
+Tiga hal yang aku ambil:
 
-1. **Algoritma sederhana bisa sangat berguna**. Nggak harus AI atau rumit buat menyelesaikan masalah sehari-hari.
-2. **Prioritas bikin pengalaman terasa natural**. Ide "utamakan daerah sama" di rekomendasi serupa membuat sarannya terasa lebih logis ketimbang acak.
-3. **Fakta lebih baik dari asumsi**. Penyesuaian harga dan penentuan label `Nasional` vs daerah spesifik dilakukan setelah dicek ke sumber lapangan (2026).
-4. **Kode yang jelas lebih penting dari kode yang pintar**. List comprehension, `sort()`, dan loop sederhana membuat alur program mudah dibaca.
+**Algoritma sederhana bisa sangat berguna.** Nggak butuh machine learning buat masalah kayak gini. List comprehension, `sort()`, dan loop dua tingkat sudah cukup buat bikin program yang kepake sehari-hari.
 
-## Kesimpulan
+**Prioritas bikin saran terasa logis.** Ide "utamakan daerah yang sama" di rekomendasi serupa bikin saranannya nggak terasa acak. Walaupun cuma bobot sederhana, dampaknya ke pengalaman user cukup besar.
 
-Program ini berhasil memenuhi tujuannya: memberikan rekomendasi kuliner Indonesia yang relevan sesuai budget, dilengkapi sisa uang, label hemat, rekomendasi serupa, dan paket hemat. Semua logika dibangun dari nol dengan pendekatan yang lugas.
+**Fakta lebih baik dari asumsi.** Dataset yang kelihatan sederhana ternyata butuh riset juga — nggak asal ketik angka. Sekali salah harga, credibility program-nya langsung drop.
 
-## Referensi
+## Coba sendiri
 
-- [Panduan Harga Makan Indonesia 2026 – Geokepo](https://www.geokepo.id/id/panduan/how-much-food-costs-indonesia-2026-price-guide)
-- The Indonesia Guide – Warung Guide 2026
-- Jakarta Tourism – Cheap Eats Jakarta (2026)
-- Jakarta Guides – How Jakarta Eats on the Street (2026)
+Repo lengkap ada di [github.com/Rolin-data/Rekomendasi-Kuliner-Di-Indonesia](https://github.com/Rolin-data/Rekomendasi-Kuliner-Di-Indonesia). Clone, masuk foldernya, jalanin `python kuliner.py`, dan langsung bisa dipakai. Nggak perlu install apa-apa selain Python 3.

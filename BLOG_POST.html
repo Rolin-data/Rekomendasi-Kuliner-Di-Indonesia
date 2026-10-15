@@ -24,20 +24,22 @@ a{color:#2563eb}
 </head>
 <body>
 <main>
-<h1>Membuat Program Rekomendasi Kuliner Indonesia Sederhana dengan Python</h1>
-<h2>Latar Belakang</h2>
-<p>Saat mau makan, pertanyaan yang sering muncul biasanya simpel: "Mau makan apa ya, tapi budget cuma segini?". Daripada bingung bolak-balik, lebih gampang kalau ada saran yang langsung sesuai kantong.</p>
-<p>Dari situ muncul ide untuk membuat program rekomendasi kuliner Indonesia berbasis terminal. Tujuannya simpel: menerima input jenis kuliner (makanan, minuman, atau camilan) dan budget, lalu memberikan daftar pilihan yang masuk budget, diurutkan dari yang paling murah.</p>
-<p>Proyek ini juga jadi latihan untuk mengaplikasikan konsep dasar pemrograman Python: struktur data, algoritma pencarian dan pengurutan, serta penggunaan Git untuk version control.</p>
-<h2>Masalah yang Ingin Diselesaikan</h2>
-<ol>
-<li><strong>Terlalu banyak pilihan</strong> — daftar kuliner Indonesia buanyak, susah milih kalau nggak tahu harganya.</li>
-<li><strong>Budget terbatas</strong> — butuh filter otomatis biar nggak usah cek satu per satu.</li>
-<li><strong>Butuh saran yang relevan</strong> — kalau sudah nemu satu pilihan, biasanya pengen yang mirip-mirip.</li>
-<li><strong>Mau hemat tapi tetap kenyang</strong> — kadang butuh kombinasi (makan + minum) biar totalnya pas di budget.</li>
-</ol>
-<h2>Struktur Data</h2>
-<p>Program ini menyimpan datanya dalam bentuk list berisi dictionary Python.</p>
+<h1>Program Rekomendasi Kuliner Indonesia: Filter Budget, Paket Hemat, dan Cara Kerjanya</h1>
+<p>Rata-rata hari Sabtu malam aku selalu bingung milih makan. Bukan karena nggak ada pilihan — justru kebanyakan. Di satu sisi pengen yang murah, di sisi lain nggak mau asal murah tapi nggak kenyang. Akhirnya muter-muter di GoFood atau keliling kampung, capek sendiri.</p>
+<p>Daripada kelamaan mikir, aku bikin program kecil di Python yang jawab pertanyaan simpel: <strong>"Makan apa hari ini dengan budget segini?"</strong> Programnya jalan di terminal, nggak pakai library tambahan, dan datanya 35 kuliner Indonesia dari sabang sampai merauke.</p>
+<p>Namanya <strong>Rekomendasi Kuliner Indonesia</strong>. Repo-nya ada di <a href="https://github.com/Rolin-data/Rekomendasi-Kuliner-Di-Indonesia">GitHub</a>.</p>
+<h2>Masalahnya kelihatan sepele, tapi nyebelin</h2>
+<p>Kalau lagi lapar dan buka aplikasi ojek online, yang muncul bukan "makan apa yang cocok", tapi justru "ini harganya masuk nggak ya budgetku?". Scroll bawah, klik item, lihat harga, tutup, scroll lagi. Capek. Belum lagi kalau mau sekalian nyari yang mirip sama makanan favoritku tapi versi lebih murah, atau lagi pengen hemat tapi tetap pengen makan + minum sekaligus.</p>
+<p>Dari situ muncul ide bikin alat sederhana yang:</p>
+<ul>
+<li>Menerima input jenis kuliner (makanan, minuman, atau camilan) dan budget.</li>
+<li>Nge-filter yang harganya masih masuk.</li>
+<li>Ngeurutkan dari yang termurah.</li>
+<li>Kalau ada yang cocok, nyaranin yang mirip-mirip.</li>
+<li>Kalau budget-nya pas-pasan, cariin paket makan + minum yang totalnya nggak lebih dari budget.</li>
+</ul>
+<h2>Data disimpan sebagai list of dictionary</h2>
+<p>Dataset ada di satu file <code>data_kuliner.py</code>, isinya list berisi 35 dictionary. Tiap dictionary punya empat kunci: <code>nama</code>, <code>kategori</code>, <code>harga</code>, dan <code>daerah</code>. Contohnya:</p>
 <div class="codehilite"><pre><span></span><code><span class="p">{</span>
     <span class="s2">"nama"</span><span class="p">:</span> <span class="s2">"Gudeg Jogja"</span><span class="p">,</span>
     <span class="s2">"kategori"</span><span class="p">:</span> <span class="s2">"makanan"</span><span class="p">,</span>
@@ -46,25 +48,34 @@ a{color:#2563eb}
 <span class="p">}</span>
 </code></pre></div>
 
-<p>Pemilihan struktur ini cukup simpel dan fleksibel. Kita bisa langsung mengakses <code>item["harga"]</code>, <code>item["kategori"]</code>, atau <code>item["daerah"]</code> tanpa perlu parsing rumit.</p>
-<p>Dataset berisi <strong>35 item kuliner Indonesia</strong> yang terbagi jadi: makanan (15), minuman (10), dan camilan (10). Semua harganya menggunakan angka bulat (rupiah) agar mudah difilter dan diurutkan.</p>
-<h2>Algoritma yang Dipakai</h2>
-<h3>1. Filter Berdasarkan Kategori dan Budget</h3>
-<p>Langkah pertama adalah menyaring data yang sesuai permintaan user. Ini dilakukan dengan list comprehension:</p>
+<p>Harganya disimpan sebagai angka bulat, bukan string, biar gampang difilter dan diurutkan tanpa perlu parsing. <code>kategori</code> juga dipakai buat milih mode pencarian: makanan, minuman, atau camilan.</p>
+<p>Yang bikin dataset ini beda dari dataset tutorial biasa: harganya bukan asal ketik. Sebelum di-commit, aku cek dulu harga kaki lima dan warung di beberapa sumber (Geokepo, Jakarta Tourism, The Indonesia Guide, dst.) buat tahun 2026. Hasilnya: nasi goreng kaki lima memang di kisaran Rp15.000–25.000, es teh manis Rp3.000–5.000, Soto Betawi di tempat legendaris bisa Rp40.000 ke atas. Angka-angka di dataset disesuaikan sama rentang itu, bukan dikarang.</p>
+<p>Ada satu aturan tambahan: kalau sebuah hidangan sudah menyebar luas dan nggak bisa dibilang milik satu daerah lagi (kayak nasi goreng kampung, kopi tubruk, teh tarik, tahu isi), daerahnya ditulis <code>Nasional</code> — biar nggak ngaku-ngaku daerah orang.</p>
+<h2>Algoritmanya nggak rumit, tapi nyambung sama masalahnya</h2>
+<h3>1. Filter berdasarkan kategori dan budget</h3>
+<p>Ini inti dari program. Pakai list comprehension biasa:</p>
 <div class="codehilite"><pre><span></span><code><span class="n">hasil</span> <span class="o">=</span> <span class="p">[</span>
     <span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">DATA_KULINER</span>
     <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="s2">"kategori"</span><span class="p">]</span> <span class="o">==</span> <span class="n">kategori</span> <span class="ow">and</span> <span class="n">item</span><span class="p">[</span><span class="s2">"harga"</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">budget</span>
 <span class="p">]</span>
 </code></pre></div>
 
-<p>Logika ini simpel tapi efektif: ambil semua item yang jenisnya sesuai dan harganya nggak lebih dari budget yang dimasukkan user.</p>
-<h3>2. Pengurutan dari Termurah</h3>
-<p>Agar user langsung lihat opsi paling hemat dulu, hasil filter diurutkan berdasarkan harga naik.</p>
+<p>Simpel, tapi cukup. Ambil yang jenisnya sesuai, harganya nggak lewat budget.</p>
+<h3>2. Diurutkan dari termurah</h3>
 <div class="codehilite"><pre><span></span><code><span class="n">hasil</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">"harga"</span><span class="p">])</span>
 </code></pre></div>
 
-<h3>3. Pencarian Kata Kunci</h3>
-<p>Selain filter berdasarkan kategori+budget, ada juga mode pencarian bebas berdasarkan potongan nama atau daerah.</p>
+<p>Biar user langsung lihat opsi paling hemat di paling atas. Nggak perlu algoritma sorting bikinan sendiri — <code>list.sort()</code> sudah cukup buat ukuran data segini.</p>
+<h3>3. Sisa uang dan label hemat</h3>
+<p>Tiap baris hasil nggak cuma nampilin nama dan harga, tapi juga sisa budget:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">baris</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"  sisa </span><span class="si">{</span><span class="n">rupiah</span><span class="p">(</span><span class="n">budget</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">item</span><span class="p">[</span><span class="s1">'harga'</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span>
+<span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="s2">"harga"</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">budget</span> <span class="o">*</span> <span class="mf">0.5</span><span class="p">:</span>
+    <span class="n">baris</span> <span class="o">+=</span> <span class="s2">"  (hemat)"</span>
+</code></pre></div>
+
+<p>Kalau harganya separuh budget atau kurang, diberi tanda <code>(hemat)</code>. Ini bantu user cepat ngenalin opsi yang paling irit tanpa harus hitung sendiri.</p>
+<h3>4. Pencarian bebas pakai kata kunci</h3>
+<p>Selain filter kategori+budget, ada mode cari dari potongan nama atau daerah. Case-insensitive, jadi ngetik <code>jogja</code>, <code>Jogja</code>, atau <code>JOGJA</code> hasilnya sama:</p>
 <div class="codehilite"><pre><span></span><code><span class="n">kata</span> <span class="o">=</span> <span class="n">kata</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 <span class="k">return</span> <span class="p">[</span>
     <span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">DATA_KULINER</span>
@@ -72,33 +83,26 @@ a{color:#2563eb}
 <span class="p">]</span>
 </code></pre></div>
 
-<p>Dengan pencarian case-insensitive, user bisa ketik <code>"jogja"</code>, <code>"Jogja"</code>, atau <code>"JOGJA"</code> dan tetap dapat hasilnya.</p>
-<h3>4. Rekomendasi Serupa</h3>
-<p>Fitur ini jawab pertanyaan: "Kalau aku suka ini, apa lagi yang mirip?".</p>
-<ol>
-<li>Ambil semua item dengan <strong>kategori yang sama</strong>, tapi <strong>beda nama</strong>.</li>
-<li>Urutkan berdasarkan <strong>selisih harga terkecil</strong>.</li>
-<li>Prioritaskan item yang <strong>berasal dari daerah yang sama</strong> dengan pilihan user.</li>
-<li>Ambil 3 teratas sebagai saran.</li>
-</ol>
+<h3>5. Rekomendasi serupa: cari yang mirip, tapi utamakan satu daerah</h3>
+<p>Ini bagian yang paling aku suka. Logikanya: kalau user sudah nemu satu pilihan (misal Kerak Telor), program nyariin 3 item lain yang mirip. Tapi "mirip" di sini bukan sekadar kategori sama — ada bobot preferensi:</p>
 <div class="codehilite"><pre><span></span><code><span class="n">kandidat</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">lain</span><span class="p">:</span> <span class="nb">abs</span><span class="p">(</span><span class="n">lain</span><span class="p">[</span><span class="s2">"harga"</span><span class="p">]</span> <span class="o">-</span> <span class="n">item</span><span class="p">[</span><span class="s2">"harga"</span><span class="p">]))</span>
 <span class="n">satu_daerah</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">kandidat</span> <span class="k">if</span> <span class="n">l</span><span class="p">[</span><span class="s2">"daerah"</span><span class="p">]</span> <span class="o">==</span> <span class="n">item</span><span class="p">[</span><span class="s2">"daerah"</span><span class="p">]]</span>
 <span class="n">daerah_lain</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">kandidat</span> <span class="k">if</span> <span class="n">l</span><span class="p">[</span><span class="s2">"daerah"</span><span class="p">]</span> <span class="o">!=</span> <span class="n">item</span><span class="p">[</span><span class="s2">"daerah"</span><span class="p">]]</span>
 <span class="k">return</span> <span class="p">(</span><span class="n">satu_daerah</span> <span class="o">+</span> <span class="n">daerah_lain</span><span class="p">)[:</span><span class="mi">3</span><span class="p">]</span>
 </code></pre></div>
 
-<p>Pendekatan ini mirip dengan konsep <em>nearest neighbor</em>: cari item terdekat berdasarkan nilai numerik (harga), dengan bobot preferensi daerah.</p>
-<h3>5. Paket Hemat (Makan + Minum)</h3>
-<p>Ini fitur yang bikin program beda dari contoh-contoh tutorial biasa. Tujuannya: cari kombinasi <strong>1 makanan + 1 minuman</strong> yang totalnya bisa mentok semaksimal mungkin ke budget.</p>
+<p>Pertama, ambil semua item dengan kategori yang sama tapi beda nama. Kedua, urutkan berdasarkan selisih harga terkecil — ini konsep dasar <em>nearest neighbor</em>, cari yang paling dekat berdasarkan nilai numerik. Ketiga, pisahkan yang se-daerah sama yang beda daerah, lalu gabung dengan prioritas se-daerah duluan. Jadi kalau lagi cari yang mirip Kerak Telor, saran pertama yang muncul biasanya dari DKI Jakarta juga.</p>
+<h3>6. Paket hemat: makan + minum yang totalnya pas di budget</h3>
+<p>Ini fitur yang bikin program ini beda dari kebanyakan tutorial recommender. Tujuannya: cari kombinasi 1 makanan dan 1 minuman yang totalnya mentok semaksimal mungkin ke budget, tapi nggak lebih.</p>
 <div class="codehilite"><pre><span></span><code><span class="k">for</span> <span class="n">makan</span> <span class="ow">in</span> <span class="n">makanan</span><span class="p">:</span>
     <span class="k">for</span> <span class="n">minum</span> <span class="ow">in</span> <span class="n">minuman</span><span class="p">:</span>
         <span class="n">total</span> <span class="o">=</span> <span class="n">makan</span><span class="p">[</span><span class="s2">"harga"</span><span class="p">]</span> <span class="o">+</span> <span class="n">minum</span><span class="p">[</span><span class="s2">"harga"</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">total</span> <span class="o">&lt;=</span> <span class="n">budget</span> <span class="ow">and</span> <span class="p">(</span><span class="n">terbaik</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">total</span> <span class="o">&gt;</span> <span class="n">terbaik</span><span class="p">[</span><span class="s2">"total"</span><span class="p">]):</span>
-            <span class="n">terbaik</span> <span class="o">=</span> <span class="p">{</span><span class="o">...</span><span class="p">}</span>
+            <span class="n">terbaik</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"makanan"</span><span class="p">:</span> <span class="n">makan</span><span class="p">,</span> <span class="s2">"minuman"</span><span class="p">:</span> <span class="n">minum</span><span class="p">,</span> <span class="s2">"total"</span><span class="p">:</span> <span class="n">total</span><span class="p">}</span>
 </code></pre></div>
 
-<p>Strateginya adalah <strong>brute force</strong> sederhana (makanan × minuman). Jumlah datanya kecil (15×10 = 150 kombinasi per pencarian), jadi nggak ada masalah performa.</p>
-<p>Tambahan kecil biar makin hemat: kalau masih ada sisa budget setelah dapat kombinasi terbaik, program otomatis menambahkan <strong>camilan termurah</strong> yang masih muat di sisa uang tersebut.</p>
+<p>Ini brute force sederhana — makanan dikali minuman. Dengan 15 makanan dan 10 minuman, itu 150 kombinasi per pencarian. Jumlah kecil, jadi nggak ada masalah performa.</p>
+<p>Kalau masih ada sisa budget setelah dapat kombinasi terbaik, program otomatis nambahin camilan termurah yang masih muat:</p>
 <div class="codehilite"><pre><span></span><code><span class="n">sisa</span> <span class="o">=</span> <span class="n">budget</span> <span class="o">-</span> <span class="n">terbaik</span><span class="p">[</span><span class="s2">"total"</span><span class="p">]</span>
 <span class="k">for</span> <span class="n">cemil</span> <span class="ow">in</span> <span class="n">camilan</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">cemil</span><span class="p">[</span><span class="s2">"harga"</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">sisa</span><span class="p">:</span>
@@ -106,44 +110,23 @@ a{color:#2563eb}
         <span class="k">break</span>
 </code></pre></div>
 
-<h3>6. Sisa Budget dan Label Hemat</h3>
-<p>Biar user bisa langsung lihat nilai gunanya, tiap hasil ditampilkan lengkap dengan <strong>sisa uang</strong>.</p>
-<div class="codehilite"><pre><span></span><code><span class="n">baris</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"  sisa </span><span class="si">{</span><span class="n">rupiah</span><span class="p">(</span><span class="n">budget</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">item</span><span class="p">[</span><span class="s1">'harga'</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span>
-<span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="s2">"harga"</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">budget</span> <span class="o">*</span> <span class="mf">0.5</span><span class="p">:</span>
-    <span class="n">baris</span> <span class="o">+=</span> <span class="s2">"  (hemat)"</span>
+<p>Hasilnya: user dapat paket lengkap (makan, minum, kadang camilan) yang pemakaian budget-nya dimaksimalkan tanpa ada satu sen pun kelewat.</p>
+<h2>Ngetes input "20.000" atau "20,000"</h2>
+<p>Waktu pertama kali demo, ada temen yang ngetik budget <code>20.000</code> (pakai titik) dan programnya error. Akhirnya ditambahin handling kecil di <code>tanya_budget()</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">budget</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">teks</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"."</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">","</span><span class="p">,</span> <span class="s2">""</span><span class="p">))</span>
 </code></pre></div>
 
-<p>Label <code>(hemat)</code> muncul kalau harganya <strong>≤ 50% dari budget</strong>.</p>
-<h2>Pengujian</h2>
-<p>Program bisa diuji otomatis lewat file input. Contohnya <code>test_input.txt</code>:</p>
-<div class="codehilite"><pre><span></span><code>1
-makanan
-20000
-1
-3
-25000
-2
-Jogja
-4
+<p>Jadi <code>20000</code>, <code>20.000</code>, dan <code>20,000</code> semuanya ke-parse jadi <code>20000</code>. Test input juga disiapin (<code>test_input.txt</code>) biar bisa diuji otomatis dari terminal tanpa harus ketik manual tiap kali:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">cmd</span> <span class="p">/</span><span class="n">c</span> <span class="s2">"python kuliner.py &lt; test_input.txt"</span>
 </code></pre></div>
 
-<p>Alurnya: cari makanan budget 20.000 → pilih item #1 (lihat rekomendasi serupa) → mode paket hemat budget 25.000 → cari berdasarkan kata kunci "Jogja" → keluar.</p>
-<h2>Pelajaran yang Dipetik</h2>
-<ol>
-<li><strong>Algoritma sederhana bisa sangat berguna</strong>. Nggak harus AI atau rumit buat menyelesaikan masalah sehari-hari.</li>
-<li><strong>Prioritas bikin pengalaman terasa natural</strong>. Ide "utamakan daerah sama" di rekomendasi serupa membuat sarannya terasa lebih logis ketimbang acak.</li>
-<li><strong>Fakta lebih baik dari asumsi</strong>. Penyesuaian harga dan penentuan label <code>Nasional</code> vs daerah spesifik dilakukan setelah dicek ke sumber lapangan (2026).</li>
-<li><strong>Kode yang jelas lebih penting dari kode yang pintar</strong>. List comprehension, <code>sort()</code>, dan loop sederhana membuat alur program mudah dibaca.</li>
-</ol>
-<h2>Kesimpulan</h2>
-<p>Program ini berhasil memenuhi tujuannya: memberikan rekomendasi kuliner Indonesia yang relevan sesuai budget, dilengkapi sisa uang, label hemat, rekomendasi serupa, dan paket hemat. Semua logika dibangun dari nol dengan pendekatan yang lugas.</p>
-<h2>Referensi</h2>
-<ul>
-<li><a href="https://www.geokepo.id/id/panduan/how-much-food-costs-indonesia-2026-price-guide">Panduan Harga Makan Indonesia 2026 – Geokepo</a></li>
-<li>The Indonesia Guide – Warung Guide 2026</li>
-<li>Jakarta Tourism – Cheap Eats Jakarta (2026)</li>
-<li>Jakarta Guides – How Jakarta Eats on the Street (2026)</li>
-</ul>
+<h2>Pelajaran dari project kecil ini</h2>
+<p>Tiga hal yang aku ambil:</p>
+<p><strong>Algoritma sederhana bisa sangat berguna.</strong> Nggak butuh machine learning buat masalah kayak gini. List comprehension, <code>sort()</code>, dan loop dua tingkat sudah cukup buat bikin program yang kepake sehari-hari.</p>
+<p><strong>Prioritas bikin saran terasa logis.</strong> Ide "utamakan daerah yang sama" di rekomendasi serupa bikin saranannya nggak terasa acak. Walaupun cuma bobot sederhana, dampaknya ke pengalaman user cukup besar.</p>
+<p><strong>Fakta lebih baik dari asumsi.</strong> Dataset yang kelihatan sederhana ternyata butuh riset juga — nggak asal ketik angka. Sekali salah harga, credibility program-nya langsung drop.</p>
+<h2>Coba sendiri</h2>
+<p>Repo lengkap ada di <a href="https://github.com/Rolin-data/Rekomendasi-Kuliner-Di-Indonesia">github.com/Rolin-data/Rekomendasi-Kuliner-Di-Indonesia</a>. Clone, masuk foldernya, jalanin <code>python kuliner.py</code>, dan langsung bisa dipakai. Nggak perlu install apa-apa selain Python 3.</p>
 </main>
 </body>
 </html>
