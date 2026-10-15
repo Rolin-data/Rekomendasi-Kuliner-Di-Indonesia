@@ -1,5 +1,7 @@
 # Rekomendasi Kuliner Indonesia
 
+**Demo online:** https://rolin-data.github.io/Rekomendasi-Kuliner-Di-Indonesia/
+
 Catatan kuliner berbasis terminal. Data nggak ditanam di dalam kode, tapi disimpan di
 file `data_kuliner.json` — jadi bisa ditambah, diubah harganya, atau dihapus langsung
 dari program. Ini bukan pura-pura jadi aplikasi nasional, tapi catatan warung buat
@@ -113,8 +115,8 @@ python -m http.server 8000
 # lalu buka http://localhost:8000
 ```
 
-Bisa juga diaktifkan GitHub Pages-nya di repo ini (Settings → Pages → branch `main`,
-folder `/`) biar langsung bisa dibuka online.
+Versinya udah online di GitHub Pages:
+https://rolin-data.github.io/Rekomendasi-Kuliner-Di-Indonesia/
 
 ## Contoh Penggunaan
 
